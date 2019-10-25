@@ -66,39 +66,29 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
     function pedido(agent) {
         const produto = agent.parameters['Produto'];
-        //agent.add(`Você deseja o produto: ${produto}`);
 
         switch (produto) {
             case 'Água':
                 agent.add(`De qual marca de água você deseja?`);
                 break;
             case 'Frango':
-                for (var prop in agent.originalRequest.payload.data.sender) {
-                    agent.add(prop + ": " + agent.originalRequest.payload.data.sender[prop]);
-                }
-                //agent.add("cliente: "+agent.originalRequest.payload.data.sender);
                 agent.add(`Frango assado ou galeto tratado?`);
                 break;
             case 'Gás':
                 addPedido(agent, produto);
                 break;
         }
-
     }
 
     function addPedido(agent, produto) {
-        // Get the database collection 'dialogflow' and document 'agent' and store
-        // the document  {entry: "<value of database entry>"} in the 'agent' document
-        const pedidoRef = db.collection('clientes').doc(agent.originalRequest.payload.data.sender.id).collection('pedidos').doc('teste');
-
-        return pedidoRef.add({
+        const pedidoRef = db.collection('clientes').doc(agent.originalRequest.payload.data.sender.id).collection('pedidos');
+        pedidoRef.add({
             itens: { produto: produto, quantidade: 1 },
             data: admin.firestore.FieldValue.serverTimestamp(),
             total: 10,
             concluido: false
         }).then(doc => {
-            //"${produto}"
-            agent.add(`Adicionado o ${doc} ao carrinho com sucesso.`);
+            agent.add(`Wrote "${doc}" to the Firestore database.`);
         }).catch(err => {
             console.log(`Error writing to Firestore: ${err}`);
             agent.add(`Failed to write "${produto}" to the Firestore database.`);
