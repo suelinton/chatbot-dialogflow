@@ -82,11 +82,10 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
     function addPedido(agent, produto) {
         const pedidoRef = db.collection('clientes').doc(agent.originalRequest.payload.data.sender.id).collection('pedidos');
-        pedidoRef.add({
-            itens: { produto: produto, quantidade: 1 },
-            data: admin.firestore.FieldValue.serverTimestamp(),
-            total: 10,
-            concluido: false
+
+        db.runTransaction(t => {
+            t.set(pedidoRef, new Pedido({ produto: produto, quantidade: 1 }, admin.firestore.FieldValue.serverTimestamp(), 10, false));
+            return Promise.resolve('Write complete');
         }).then(doc => {
             agent.add(`Wrote "${doc}" to the Firestore database.`);
             return Promise.resolve('Read complete');
@@ -105,3 +104,13 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     intentMap.set('Pedir', pedido);
     agent.handleRequest(intentMap);
 });
+
+class Pedido {
+
+    constructor(itens, data, total, concluido) {
+        this.itens = itens,
+            this.data = data,
+            this.total = total,
+            this.concluido = concluido
+    }
+}
