@@ -6,7 +6,7 @@ process.env.DEBUG = 'dialogflow:*'; // enables lib debugging statements
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
 
-    let action = request.body.queryResult;
+    let action = request.body.queryResult.intent.displayName;
 
     let responseJson = {};
 
@@ -16,7 +16,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
             let richResponse = [{
                     "text": {
                         "text": [
-                            ""
+                            "Text defined in Dialogflow's console for the intent that was matched"
                         ]
                     },
                     "platform": "FACEBOOK"
@@ -25,7 +25,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                     "card": {
                         "title": 'data.title',
                         "subtitle": 'data.subtitle',
-                        "imageUri": 'https://picsum.photos/200/300',
+                        "imageUri": 'https://assistant.google.com/static/images/molecule/Molecule-Formation-stop.png',
                         "buttons": [{
                             "text": 'data.buttons.text',
                             "postback": 'data.buttons.postback'
@@ -34,11 +34,11 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                     "platform": "FACEBOOK"
                 }
             ]
-            responseJson.fulfillmentText = richResponse;
+            responseJson.fulfillmentMessages = richResponse;
             break;
         default:
-            responseJson.fulfillmentText = 'json ' + JSON.stringify(action);
+            responseJson.fulfillmentText = 'Desculpe, não consegui entender';
     }
-    responseJson.fulfillmentText = 'json ' + JSON.stringify(action);
+    // responseJson.fulfillmentText = 'json ' + JSON.stringify(action);
     response.json(responseJson);
 });
