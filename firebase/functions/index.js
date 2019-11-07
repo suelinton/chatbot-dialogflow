@@ -24,75 +24,87 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
         case 'addPedido':
             responseJson.fulfillmentText = 'Avaible drones';
             let richResponse = [{
-                "text": {
-                    "text": [
-                        "Text defined in Dialogflow's console for the intent that was matched"
-                    ]
+                    "text": {
+                        "text": [
+                            "Text defined in Dialogflow's console for the intent that was matched"
+                        ]
+                    },
+                    "platform": "FACEBOOK"
                 },
-                "platform": "FACEBOOK"
-            },
-            {
-                "card": {
-                    "title": 'data.title',
-                    "subtitle": 'data.subtitle',
-                    "imageUri": 'https://assistant.google.com/static/images/molecule/Molecule-Formation-stop.png',
-                    "buttons": [{
-                        "text": 'data.buttons.text',
-                        "postback": 'data.buttons.postback'
-                    }]
-                },
-                "platform": "FACEBOOK"
-            }
+                {
+                    "card": {
+                        "title": 'data.title',
+                        "subtitle": 'data.subtitle',
+                        "imageUri": 'https://assistant.google.com/static/images/molecule/Molecule-Formation-stop.png',
+                        "buttons": [{
+                            "text": 'data.buttons.text',
+                            "postback": 'data.buttons.postback'
+                        }]
+                    },
+                    "platform": "FACEBOOK"
+                }
             ]
             responseJson.fulfillmentMessages = richResponse;
+            response.json(responseJson);
             break;
         case "showProducts":
 
             //let droneTypes = request.body.queryResult.parameters['drone-types'];
             //let droneTypesKey = droneTypes.replace(/\s/g, '');
 
-            let produtos = db.collection(produtos).get();
+            let produtos = db.collection('produtos').get();
             produtos.then((snapshot) => {
-                let richResponses = [{
-                    "text": {
-                        "text": [
-                            `Escolha seus produtos`
-                        ]
-                    },
-                    "platform": "FACEBOOK"
-                }];
-
-                snapshot.forEach((doc) => {
-                    var data = doc.data();
-                    let card = {
-                        "card": {
-                            "title": data.nome,
-                            "subtitle": data.valor,
-                            "imageUri": data.imageUri,
-                            "buttons": [{
-                                "text": data.nome,
-                                "postback": data.nome
-                            }]
+                    let richResponses = [{
+                        "text": {
+                            "text": [
+                                `Escolha seus produtos`
+                            ]
                         },
                         "platform": "FACEBOOK"
-                    };
-                    richResponses.push(card);
+                    }];
 
-                });
+                    snapshot.forEach((doc) => {
+                        var data = doc.data();
+                        let card = {
+                            "card": {
+                                "title": data.nome,
+                                "subtitle": data.valor,
+                                "imageUri": data.imageUri,
+                                "buttons": [{
+                                    "text": data.nome
+                                        // ,"postback": data.nome
+                                }]
+                            },
+                            "platform": "FACEBOOK"
+                        };
+                        richResponses.push(card);
 
-                return richResponses;
-            }).then((richResponses) => {
-                let responseJson = {};
-                responseJson.fulfillmentMessages = richResponses;
-                response.json(responseJson);
-            })
+                    });
+
+                    return richResponses;
+                }).then((richResponses) => {
+                    let responseJson = {};
+                    responseJson.fulfillmentMessages = richResponses;
+                    response.json(responseJson);
+                })
                 .catch((err) => {
-                    console.log('Error getting documents', err);
+                    let richResponses = [{
+                        "text": {
+                            "text": [
+                                `Desculpe, erro na exibição dos produtos, tente novamente mais tarde!`
+                            ]
+                        },
+                        "platform": "FACEBOOK"
+                    }];
+                    let responseJson = {};
+                    responseJson.fulfillmentMessages = richResponses;
+                    response.json(responseJson);
+                    console.log('', err);
                 });
             break;
         default:
             responseJson.fulfillmentText = 'Desculpe, não consegui entender';
     }
     // responseJson.fulfillmentText = 'json ' + JSON.stringify(action);
-    response.json(responseJson);
+
 });
