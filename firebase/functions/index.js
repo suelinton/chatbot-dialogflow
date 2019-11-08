@@ -15,37 +15,50 @@ var db = admin.firestore()
 process.env.DEBUG = 'dialogflow:*'; // enables lib debugging statements
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
-
-    let action = request.body.queryResult.intent.displayName;
-
+    let queryResult = request.body.queryResult;
+    let action = queryResult.intent.displayName;
     let responseJson = {};
 
     switch (action) {
         case 'addPedido':
-            responseJson.fulfillmentText = 'Avaible drones';
-            let richResponse = [{
+            //responseJson.fulfillmentText = 'json ' + JSON.stringify(queryResult.outputContexts[0].parameters.facebook_sender_id)
+            let clientFacebookId = Number(queryResult.outputContexts[0].parameters.facebook_sender_id)
+            let produto = queryResult.parameters.Produto;
+            let quantidade = queryResult.parameters.quantidade;
+            let responseJson = {};
+            let richResponses = [{
+                "text": {
+                    "text": [
+                        `Preparando o ${produto} na quantidade ${quantidade} do cliente ${clientFacebookId} para salvar.`
+                    ]
+                },
+                "platform": "FACEBOOK"
+            }];
+
+            const pedidoRef = db.collection('clientes').doc(clientFacebookId).collection('pedidos');
+            pedidoRef.add({
+                itens: [{ produto: produto, quantidade: quantidade }],
+                data: admin.firestore.FieldValue.serverTimestamp(),
+                concluido: false
+            }).then(doc => {
+                richResponses[0].text.text.push("Produto " + produto + " adicionado ao carrinho com sucesso!")
+
+                responseJson.fulfillmentMessages = richResponses;
+                response.json(responseJson);
+            }).catch(err => {
+                let richResponses = [{
                     "text": {
                         "text": [
-                            "Text defined in Dialogflow's console for the intent that was matched"
+                            `Error writing to Firestore: ${err}`
                         ]
                     },
                     "platform": "FACEBOOK"
-                },
-                {
-                    "card": {
-                        "title": 'data.title',
-                        "subtitle": 'data.subtitle',
-                        "imageUri": 'https://assistant.google.com/static/images/molecule/Molecule-Formation-stop.png',
-                        "buttons": [{
-                            "text": 'data.buttons.text',
-                            "postback": 'data.buttons.postback'
-                        }]
-                    },
-                    "platform": "FACEBOOK"
-                }
-            ]
-            responseJson.fulfillmentMessages = richResponse;
-            response.json(responseJson);
+                }];
+
+                responseJson.fulfillmentMessages = richResponses;
+                response.json(responseJson);
+            });
+
             break;
         case "showProducts":
 
@@ -104,6 +117,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
             break;
         default:
             responseJson.fulfillmentText = 'Desculpe, não consegui entender';
+            response.json(responseJson);
     }
     // responseJson.fulfillmentText = 'json ' + JSON.stringify(action);
 
