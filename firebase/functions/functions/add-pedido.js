@@ -1,32 +1,32 @@
 const getTextModel = require('../models/text-model');
 
-module.exports = function (db, request, response) {
-    let queryResult = request.body.queryResult;
-    let clientFacebookId = queryResult.outputContexts[0].parameters.facebook_sender_id;
+module.exports = (db, request, richResponses) => {
+    return new Promise((resolve, reject) => {
 
-    let produto = queryResult.parameters.Produto;
-    let quantidade = queryResult.parameters.number;
+        let queryResult = request.body.queryResult;
+        let clientFacebookId = queryResult.outputContexts[0].parameters.facebook_sender_id;
 
-    const pedidoRef = db.collection('clientes').doc(clientFacebookId).collection('carrinho').doc(produto);
+        let produto = queryResult.parameters.Produto;
+        let quantidade = queryResult.parameters.number;
 
-    db.runTransaction(t => {
-        t.set(pedidoRef, {
-            nome: produto,
-            quantidade: quantidade
+        const pedidoRef = db.collection('clientes').doc(clientFacebookId).collection('carrinho').doc(produto);
+
+        db.runTransaction(t => {
+            t.set(pedidoRef, {
+                nome: produto,
+                quantidade: quantidade
+            });
+
+            return Promise.resolve('Write complete');
+        }).then(doc => {
+            richResponses.push(getTextModel(`Adicionado o produto "${produto}" com sucesso!`))
+            resolve( richResponses);
+
+        }).catch(err => {
+            richResponses.push(getTextModel(`Erro ao adicionar o produto "${produto}" ao carrinho, tente novamente.`))
+            richResponses.push(getTextModel(`${err}`));
+           
+            reject(richResponses);
         });
-
-        return Promise.resolve('Write complete');
-    }).then(doc => {
-        let richResponses = [ getTextModel(`Adicionado o produto "${produto}" com sucesso!`) ]
-
-        let responseJson = { fulfillmentMessages: richResponses };
-
-        response.json(responseJson);
-    }).catch(err => {
-        let richResponses = [getTextModel(`Erro ao adicionar o produto "${produto}" ao carrinho, tente novamente.`)]
-        richResponses.push(getTextModel(`${err}`))
-        let responseJson = { fulfillmentMessages: richResponses };
-
-        response.json(responseJson);
     });
 }

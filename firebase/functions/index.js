@@ -20,21 +20,50 @@ process.env.DEBUG = 'dialogflow:*'; // enables lib debugging statements
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
     let action = request.body.queryResult.intent.displayName;
-
+    let richResponses = [];
     switch (action) {
         case 'verCarrinho':
-            _verCarrinho(db, request, response);
+            _verCarrinho(db, request, richResponses)
+                .then(
+                    (richResponses) => {
+                        let responseJson = { fulfillmentMessages: richResponses };
+
+                        response.json(responseJson);
+                    }
+                ).catch(
+                    (richResponses) => {
+                        let responseJson = { fulfillmentMessages: richResponses };
+
+                        response.json(responseJson);
+                    }
+                );
             break;
         case 'addPedido':
-            try {
-                _addPedido(db, request, response);
-            } catch (err) {
-                let richResponses = [getTextModel(`Erro ao adicionar o produto "${produto}" ao carrinho, tente novamente.`)]
-                richResponses.push(getTextModel(`${err}`))
-                let responseJson = { fulfillmentMessages: richResponses };
+            _addPedido(db, request, richResponses)
+                .then(
+                    (richResponsesPedido) => {
+                        _verCarrinho(db, request, richResponsesPedido)
+                            .then(
+                                (richResponses) => {
+                                    let responseJson = { fulfillmentMessages: richResponses };
 
-                response.json(responseJson);
-            }
+                                    response.json(responseJson);
+                                }
+                            ).catch(
+                                (richResponses) => {
+                                    let responseJson = { fulfillmentMessages: richResponses };
+
+                                    response.json(responseJson);
+                                }
+                            );
+                    }
+                ).catch(
+                    (richResponses) => {
+                        let responseJson = { fulfillmentMessages: richResponses };
+
+                        response.json(responseJson);
+                    }
+                );
             break;
         case "showProducts":
             _showProdutos(db, request, response);
