@@ -5,6 +5,7 @@ const admin = require('firebase-admin');
 const _verCarrinho = require('./functions/ver-carrinho');
 const _addPedido = require('./functions/add-pedido');
 const _showProdutos = require('./functions/show-produtos');
+const getTextModel = require('./models/text-model');
 
 var serviceAccount = require("./config/projecttest-169318-sfqltl-firebase-adminsdk-vw8ch-ca8c8f5a98.json");
 
@@ -22,10 +23,18 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
     switch (action) {
         case 'verCarrinho':
-            _verCarrinho(db, request, response );
+            _verCarrinho(db, request, response);
             break;
         case 'addPedido':
-            _addPedido(db, request, response);
+            try {
+                _addPedido(db, request, response);
+            } catch (err) {
+                let richResponses = [getTextModel(`Erro ao adicionar o produto "${produto}" ao carrinho, tente novamente.`)]
+                richResponses.push(getTextModel(`${err}`))
+                let responseJson = { fulfillmentMessages: richResponses };
+
+                response.json(responseJson);
+            }
             break;
         case "showProducts":
             _showProdutos(db, request, response);
