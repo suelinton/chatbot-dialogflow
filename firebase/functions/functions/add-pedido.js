@@ -1,26 +1,32 @@
+const getTextModel = require('../models/text-model');
+
 module.exports = function (db, request, response) {
     let queryResult = request.body.queryResult;
     let clientFacebookId = Number(queryResult.outputContexts[0].parameters.facebook_sender_id)
+
     let produto = queryResult.parameters.Produto;
     let quantidade = queryResult.parameters.quantidade;
-    let responseJson = {};
 
-    let richResponses = getTextModel(`Preparando o ${produto} na quantidade ${quantidade} do cliente ${clientFacebookId} para salvar.`);
+    const pedidoRef = db.collection('clientes').doc('ZtTGZafoGDmusvaLaosX').collection('carrinho').doc('gyi7GxtPPGFKx8dnmfXq');
 
-    const pedidoRef = db.collection('clientes').doc(clientFacebookId).collection('pedidos');
-    pedidoRef.set({
-        itens: [{ produto: produto, quantidade: quantidade }],
-        data: admin.firestore.FieldValue.serverTimestamp(),
-        concluido: false
+    db.runTransaction(t => {
+        t.set(pedidoRef, {
+            nome: produto,
+            quantidade: 1
+        });
+
+        return Promise.resolve('Write complete');
     }).then(doc => {
-        richResponses[0].text.text.push("Produto " + produto + " adicionado ao carrinho com sucesso!")
+        let richResponses = [getTextModel('Adicionado o produto com sucesso!')]
 
-        responseJson.fulfillmentMessages = richResponses;
+        let responseJson = { fulfillmentMessages: richResponses };
+
         response.json(responseJson);
     }).catch(err => {
-        let richResponses = [];
+        let richResponses = [getTextModel('Erro ao adicionar o produto ao carrinho, tente novamente.')]
+        richResponses.push(getTextModel(`${err}`))
+        let responseJson = { fulfillmentMessages: richResponses };
 
-        responseJson.fulfillmentMessages = richResponses;
         response.json(responseJson);
     });
 }

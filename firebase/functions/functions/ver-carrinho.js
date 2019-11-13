@@ -15,14 +15,14 @@ module.exports = function (db, request, response) {
 
             let text = getTextModel(`produto: ${produto.nome}, quantidade ${produto.quantidade}`)
             
-            total += produto.valor;
+            //total += produto.valor;
 
             richResponses.push(text);
         });
 
         richResponses.push( getTextModel(`Total = ${total}`) );
 
-        
+
         return richResponses;
     }).then((richResponses) => {
         let responseJson = {};
