@@ -2,12 +2,12 @@ const getTextModel = require('../models/text-model');
 
 module.exports = function (db, request, response) {
     let queryResult = request.body.queryResult;
-    let clientFacebookId = Number(queryResult.outputContexts[0].parameters.facebook_sender_id)
+    let clientFacebookId = queryResult.outputContexts[0].parameters.facebook_sender_id;
 
     let produto = queryResult.parameters.Produto;
     let quantidade = queryResult.parameters.number;
 
-    const pedidoRef = db.collection('clientes').doc('ZtTGZafoGDmusvaLaosX').collection('carrinho').doc(produto);
+    const pedidoRef = db.collection('clientes').doc(clientFacebookId).collection('carrinho').doc(produto);
 
     db.runTransaction(t => {
         t.set(pedidoRef, {

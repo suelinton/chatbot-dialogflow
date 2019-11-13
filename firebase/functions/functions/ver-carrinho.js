@@ -2,9 +2,9 @@ const getTextModel = require('../models/text-model');
 
 module.exports = function (db, request, response) {
     let queryResult = request.body.queryResult;
-    let clientFacebookId = Number(queryResult.outputContexts[0].parameters.facebook_sender_id);
+    let clientFacebookId = queryResult.outputContexts[0].parameters.facebook_sender_id;
     
-    let carrinho = db.collection('clientes').doc('ZtTGZafoGDmusvaLaosX').collection('carrinho').get();
+    let carrinho = db.collection('clientes').doc(clientFacebookId).collection('carrinho').get();
     
     carrinho.then((snapshot) => {
         let richResponses = [getTextModel('Aqui estão os produtos do seu carrinho: ')];
