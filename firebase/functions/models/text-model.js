@@ -1,4 +1,4 @@
-function getTextModel(text){
+function getTextModel(text) {
     return {
         "text": {
             "text": [
