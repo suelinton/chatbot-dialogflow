@@ -20,12 +20,13 @@ module.exports = (db, request, richResponses) => {
             return Promise.resolve('Write complete');
         }).then(doc => {
             richResponses.push(getTextModel(`Adicionado o produto "${produto}" com sucesso!`))
-            resolve( richResponses);
+            richResponses.push(getTextModel(`Você gostaria de ver o carrinho?`))
+            resolve(richResponses);
 
         }).catch(err => {
             richResponses.push(getTextModel(`Erro ao adicionar o produto "${produto}" ao carrinho, tente novamente.`))
             richResponses.push(getTextModel(`${err}`));
-           
+
             reject(richResponses);
         });
     });
