@@ -1,4 +1,4 @@
-const getTextModel = require('../models/text-model');
+const getTextModel = require('../models/richtext-model');
 
 module.exports = (db, request, richResponses) => {
     return new Promise((resolve, reject) => {
@@ -27,6 +27,7 @@ module.exports = (db, request, richResponses) => {
             richResponses.push(getTextModel(`Erro ao adicionar o produto "${produto}" ao carrinho, tente novamente.`))
             richResponses.push(getTextModel(`${err}`));
 
+            // reject(request);
             reject(richResponses);
         });
     });

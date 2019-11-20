@@ -7,6 +7,7 @@ const _addPedido = require('./functions/add-pedido');
 const _showProdutos = require('./functions/show-produtos');
 const _getDefaultMensageError = require('./functions/default-message-error');
 const _getMensageError = require('./functions/error-message');
+const _getTextModel = require('./models/richtext-model');
 
 var serviceAccount = require("./config/projecttest-169318-sfqltl-firebase-adminsdk-vw8ch-ca8c8f5a98.json");
 
@@ -24,28 +25,17 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     let richResponses = [];
 
     var _returnResult = (richResponses) => {
-        let responseJson = { fulfillmentMessages: richResponses };
+        let responseJson = {
+            fulfillmentText: "richResponses: " + JSON.stringify(richResponses),
+            fulfillmentMessages: richResponses
+        };
 
         response.json(responseJson);
     }
 
-    var _returnResultConfirmation = (richResponses) => {
+    var _RETURNTESTE = (richResponses) => {
         let responseJson = {
-            fulfillmentMessages: richResponses,
-            "payload": {
-                "google": {
-                    "expectUserResponse": true,
-                    "systemIntent": {
-                        "intent": "actions.intent.CONFIRMATION",
-                        "data": {
-                            "@type": "type.googleapis.com/google.actions.v2.ConfirmationValueSpec",
-                            "dialogSpec": {
-                                "requestConfirmationText": "Please confirm your order."
-                            }
-                        }
-                    }
-                }
-            }
+            fulfillmentText: "erro ao adicionar com os seguintes parametros: " + JSON.stringify(richResponses)
         };
 
         response.json(responseJson);
@@ -53,12 +43,12 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
     try {
         switch (action) {
-            case 'addProdutoCarrinhoYes':
+            case 'addPedido.addPedido-yes':
             case 'verCarrinho':
                 _verCarrinho(db, request, richResponses).then(_returnResult).catch(_returnResult);
                 break;
             case 'addPedido':
-                _addPedido(db, request, richResponses).then(_returnResultConfirmation).catch(_returnResult);
+                _addPedido(db, request, richResponses).then(_returnResult).catch(_RETURNTESTE);
                 break;
             case "showProducts":
                 _showProdutos(db, richResponses).then(_returnResult).catch(_returnResult);
@@ -69,6 +59,6 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                 break;
         }
     } catch (error) {
-        _returnResult(_getMensageError(richResponses, error));
+        _returnSimpleResult(_getMensageError(richResponses, error));
     }
 });

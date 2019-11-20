@@ -1,4 +1,4 @@
-const getTextModel = require('../models/text-model');
+const getTextModel = require('../models/richtext-model');
 
 module.exports = (db, richResponses) => {
     return new Promise((resolve, reject) => {

@@ -1,4 +1,4 @@
-const getTextModel = require('../models/text-model');
+const getTextModel = require('../models/richtext-model');
 
 module.exports = (db, request, richResponses) => {
     return new Promise((resolve, reject) => {
@@ -26,10 +26,10 @@ module.exports = (db, request, richResponses) => {
 
             return richResponses;
         }).then((richResponses) => {
-            resolve( richResponses );
+            resolve(richResponses);
         }).catch((err) => {
             richResponses.push(getTextModel(`Desculpe, erro na exibição dos produtos, tente novamente mais tarde!`));
-            reject( richResponses );
+            reject(richResponses);
         });
     });
 }
