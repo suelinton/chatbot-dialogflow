@@ -48,7 +48,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                 _verCarrinho(db, request, richResponses).then(_returnResult).catch(_returnResult);
                 break;
             case 'addPedido':
-                _addPedido(db, request, richResponses).then(_returnResult).catch(_RETURNTESTE);
+                _addPedido(db, request, richResponses).then(_returnResult).catch(_returnResult);
                 break;
             case "showProducts":
                 _showProdutos(db, richResponses).then(_returnResult).catch(_returnResult);
